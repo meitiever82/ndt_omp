@@ -1,5 +1,6 @@
 #include <iostream>
-#include <ros/ros.h>
+#include <chrono>
+#include <rclcpp/rclcpp.hpp>
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
@@ -17,16 +18,18 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr align(pcl::Registration<pcl::PointXYZ, pcl::
   registration->setInputSource(source_cloud);
   pcl::PointCloud<pcl::PointXYZ>::Ptr aligned(new pcl::PointCloud<pcl::PointXYZ>());
 
-  auto t1 = ros::WallTime::now();
+  auto t1 = std::chrono::high_resolution_clock::now();
   registration->align(*aligned);
-  auto t2 = ros::WallTime::now();
-  std::cout << "single : " << (t2 - t1).toSec() * 1000 << "[msec]" << std::endl;
+  auto t2 = std::chrono::high_resolution_clock::now();
+  auto duration1 = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1);
+  std::cout << "single : " << duration1.count() / 1000.0 << "[msec]" << std::endl;
 
   for(int i=0; i<10; i++) {
     registration->align(*aligned);
   }
-  auto t3 = ros::WallTime::now();
-  std::cout << "10times: " << (t3 - t2).toSec() * 1000 << "[msec]" << std::endl;
+  auto t3 = std::chrono::high_resolution_clock::now();
+  auto duration2 = std::chrono::duration_cast<std::chrono::microseconds>(t3 - t2);
+  std::cout << "10times: " << duration2.count() / 1000.0 << "[msec]" << std::endl;
   std::cout << "fitness: " << registration->getFitnessScore() << std::endl << std::endl;
 
   return aligned;
@@ -68,7 +71,8 @@ int main(int argc, char** argv) {
   voxelgrid.filter(*downsampled);
   source_cloud = downsampled;
 
-  ros::Time::init();
+  // Initialize ROS 2
+  rclcpp::init(argc, argv);
 
   // benchmark
   std::cout << "--- pcl::GICP ---" << std::endl;
@@ -114,5 +118,6 @@ int main(int argc, char** argv) {
   vis.addPointCloud(aligned, aligned_handler, "aligned");
   vis.spin();
 
+  rclcpp::shutdown();
   return 0;
 }

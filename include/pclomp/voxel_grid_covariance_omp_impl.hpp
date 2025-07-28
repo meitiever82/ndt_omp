@@ -133,9 +133,9 @@ pclomp::VoxelGridCovariance<PointT>::applyFilter (PointCloud &output)
     {
       if (!input_->is_dense)
         // Check if the point is invalid
-        if (!pcl_isfinite (input_->points[cp].x) ||
-            !pcl_isfinite (input_->points[cp].y) ||
-            !pcl_isfinite (input_->points[cp].z))
+        if (!std::isfinite (input_->points[cp].x) ||
+            !std::isfinite (input_->points[cp].y) ||
+            !std::isfinite (input_->points[cp].z))
           continue;
 
       // Get the distance value
@@ -200,6 +200,8 @@ pclomp::VoxelGridCovariance<PointT>::applyFilter (PointCloud &output)
         leaf.centroid += centroid;
       }
       ++leaf.nr_points;
+
+      leaf.pointList_.push_back(input_->points[cp]);
     }
   }
   // No distance filtering, process all data
@@ -210,9 +212,9 @@ pclomp::VoxelGridCovariance<PointT>::applyFilter (PointCloud &output)
     {
       if (!input_->is_dense)
         // Check if the point is invalid
-        if (!pcl_isfinite (input_->points[cp].x) ||
-            !pcl_isfinite (input_->points[cp].y) ||
-            !pcl_isfinite (input_->points[cp].z))
+        if (!std::isfinite (input_->points[cp].x) ||
+            !std::isfinite (input_->points[cp].y) ||
+            !std::isfinite (input_->points[cp].z))
           continue;
 
       int ijk0 = static_cast<int> (floor (input_->points[cp].x * inverse_leaf_size_[0]) - static_cast<float> (min_b_[0]));
@@ -260,6 +262,8 @@ pclomp::VoxelGridCovariance<PointT>::applyFilter (PointCloud &output)
         leaf.centroid += centroid;
       }
       ++leaf.nr_points;
+
+      leaf.pointList_.push_back(input_->points[cp]);
     }
   }
 

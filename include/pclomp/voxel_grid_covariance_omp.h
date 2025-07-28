@@ -38,8 +38,9 @@
 #ifndef PCL_VOXEL_GRID_COVARIANCE_OMP_H_
 #define PCL_VOXEL_GRID_COVARIANCE_OMP_H_
 
-#include <pcl/filters/boost.h>
+#include <memory>
 #include <pcl/filters/voxel_grid.h>
+#include <pcl/common/common.h>
 #include <map>
 #include <unordered_map>
 #include <pcl/point_types.h>
@@ -84,8 +85,8 @@ namespace pclomp
 
     public:
 
-      typedef boost::shared_ptr< pcl::VoxelGrid<PointT> > Ptr;
-      typedef boost::shared_ptr< const pcl::VoxelGrid<PointT> > ConstPtr;
+      typedef std::shared_ptr< pcl::VoxelGrid<PointT> > Ptr;
+      typedef std::shared_ptr< const pcl::VoxelGrid<PointT> > ConstPtr;
 
       /** \brief Simple structure to hold a centroid, covarince and the number of points in a leaf.
         * Inverse covariance, eigen vectors and engen values are precomputed. */
@@ -183,6 +184,9 @@ namespace pclomp
 
         /** \brief Eigen values of voxel covariance matrix */
         Eigen::Vector3d evals_;
+
+        /** \brief Points inside the cell */
+        pcl::PointCloud<PointT> pointList_;
 
       };
 
@@ -383,7 +387,7 @@ namespace pclomp
        * \return a map contataining all leaves
        */
       inline const Map&
-      getLeaves ()
+      getLeaves () const
       {
         return leaves_;
       }
@@ -393,7 +397,7 @@ namespace pclomp
        * \return a map contataining all leaves
        */
       inline PointCloudPtr
-      getCentroids ()
+      getCentroids () const
       {
         return voxel_centroids_;
       }
@@ -494,6 +498,38 @@ namespace pclomp
 			  std::cin.ignore(1);
 		  }
           k_leaves.push_back (&(leaf->second));
+        }
+        return k;
+      }
+
+      int radiusSearch(const PointT& point, double radius,
+                      std::vector<LeafConstPtr>& k_leaves,
+                      std::vector<int>& k_indices,
+                      std::vector<float>& k_sqr_distances,
+                      unsigned int max_nn = 0) const {
+        k_leaves.clear();
+
+        // Check if kdtree has been built
+        if (!searchable_) {
+          PCL_WARN("%s: Not Searchable", this->getClassName().c_str());
+          return 0;
+        }
+
+        // Find neighbors within radius in the occupied voxel centroid cloud
+        int k = kdtree_.radiusSearch(point, radius, k_indices, k_sqr_distances, max_nn);
+
+        // Find leaves corresponding to neighbors
+        k_leaves.reserve(k);
+        for (std::vector<int>::iterator iter = k_indices.begin();
+            iter != k_indices.end(); iter++) {
+          auto leaf = leaves_.find(voxel_centroids_leaf_indices_[*iter]);
+          if (leaf == leaves_.end()) {
+            std::cerr
+                << "error : could not find the leaf corresponding to the voxel"
+                << std::endl;
+            std::cin.ignore(1);
+          }
+          k_leaves.push_back(&(leaf->second));
         }
         return k;
       }
