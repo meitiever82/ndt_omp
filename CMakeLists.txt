@@ -73,6 +73,21 @@ target_link_libraries(align
   ndt_omp
 )
 
+# Interactive viewer based on official PCL viewer
+add_executable(interactive_viewer
+  apps/interactive_viewer.cpp
+)
+
+ament_target_dependencies(interactive_viewer
+  rclcpp
+  pcl_ros
+  pcl_conversions
+)
+
+target_link_libraries(interactive_viewer
+  ${PCL_LIBRARIES}
+)
+
 ############
 ## Install ##
 ############
@@ -84,6 +99,7 @@ install(TARGETS
 
 install(TARGETS
   align
+  interactive_viewer
   DESTINATION lib/${PROJECT_NAME}
 )
 
