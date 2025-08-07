@@ -41,6 +41,7 @@
 #ifndef PCL_GICP_OMP_H_
 #define PCL_GICP_OMP_H_
 
+#include <boost/shared_ptr.hpp>
 #include <pcl/registration/icp.h>
 #include <pcl/registration/bfgs.h>
 

@@ -1,9 +1,13 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.20.2)
 project(ndt_omp)
 
+# Set C++ standard
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 # -mavx causes a lot of errors!!
-add_definitions(-std=c++11 -msse -msse2 -msse3 -msse4 -msse4.1 -msse4.2)
-set(CMAKE_CXX_FLAGS "-std=c++11 -msse -msse2 -msse3 -msse4 -msse4.1 -msse4.2")
+add_definitions(-msse -msse2 -msse3 -msse4 -msse4.1 -msse4.2)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse -msse2 -msse3 -msse4 -msse4.1 -msse4.2")
 
 # pcl 1.7 causes a segfault when it is built with debug mode
 set(CMAKE_BUILD_TYPE "RELEASE")
@@ -13,7 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
   pcl_ros
 )
 
-find_package(PCL 1.7 REQUIRED)
+find_package(PCL 1.12 REQUIRED)
 include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
@@ -50,6 +54,11 @@ add_library(ndt_omp
   src/pclomp/gicp_omp.cpp
 )
 
+target_link_libraries(ndt_omp
+  ${catkin_LIBRARIES}
+  ${PCL_LIBRARIES}
+)
+
 add_executable(align
   apps/align.cpp
 )
@@ -57,8 +66,8 @@ add_dependencies(align
   ndt_omp
 )
 target_link_libraries(align
-  ${catkin_LIBRARIES}
-  ${PCL_LIBRARIES}
+  ${catkin_LIBRARIES}    
+  ${PCL_LIBRARIES}  
   ndt_omp
 )
 
