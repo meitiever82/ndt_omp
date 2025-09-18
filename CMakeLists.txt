@@ -94,7 +94,9 @@ target_link_libraries(interactive_viewer
 
 install(TARGETS
   ndt_omp
-  DESTINATION lib/${PROJECT_NAME}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
 )
 
 install(TARGETS
